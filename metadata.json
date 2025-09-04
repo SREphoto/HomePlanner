@@ -1,0 +1,8 @@
+{
+  "name": "HomePlanner_v0.17_visualizer",
+  "description": "An application to design property layouts, measure rooms, and use AI to generate furniture arrangements and estimate dimensions from photos.",
+  "requestFramePermissions": [
+    "camera"
+  ],
+  "prompt": ""
+}
