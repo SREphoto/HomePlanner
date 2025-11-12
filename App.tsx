@@ -330,6 +330,8 @@ const App = () => {
             onUpdateRoom={(r) => handleUpdateRoom(r, false)}
             onFinalizeUpdate={(r) => handleUpdateRoom(r, true)}
             onAddRoom={handleAddRoom}
+            onDeleteRoom={handleDeleteRoom}
+            onGenerateLayout={handleGenerateLayout}
             viewMode={viewMode}
             isSnapEnabled={isSnapEnabled}
             interactionMode={interactionMode}

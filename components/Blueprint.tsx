@@ -6,6 +6,7 @@ import { Room, Furniture, Feature, FeatureType, Wall, Vector2, ItemTypes, RoomTy
 import { PIXELS_PER_FOOT, GRID_SNAP_FEET, DEFAULT_FURNITURE_COLOR, DEFAULT_WALL_COLOR } from '../constants';
 import OutletIcon from './icons/OutletIcon';
 import DragHandleIcon from './icons/DragHandleIcon';
+import ContextMenu from './ContextMenu';
 
 const WALL_HEIGHT_PIXELS = 70;
 
@@ -17,6 +18,8 @@ interface BlueprintProps {
   onUpdateRoom: (room: Room) => void;
   onFinalizeUpdate: (room: Room) => void;
   onAddRoom: (room: Omit<Room, 'id' | 'floor' | 'color'>) => void;
+  onDeleteRoom: (roomId: string) => void;
+  onGenerateLayout: (roomId: string) => void;
   viewMode: '2d' | '3d';
   isSnapEnabled: boolean;
   interactionMode: InteractionMode;
@@ -27,11 +30,12 @@ interface BlueprintProps {
 
 const Blueprint: React.FC<BlueprintProps> = ({ 
     rooms, allRooms, onSelectRoom, selectedRoomId, onUpdateRoom, onFinalizeUpdate, onAddRoom,
-    viewMode, isSnapEnabled, interactionMode, setInteractionMode, currentFloor, sunlight
+    onDeleteRoom, onGenerateLayout, viewMode, isSnapEnabled, interactionMode, setInteractionMode, currentFloor, sunlight
 }) => {
     
     const [drawStartPoint, setDrawStartPoint] = useState<Vector2 | null>(null);
     const [drawPreview, setDrawPreview] = useState<Omit<Room, 'id' | 'floor' | 'color'> | null>(null);
+    const [contextMenu, setContextMenu] = useState<{ x: number, y: number, roomId: string } | null>(null);
 
   const [, drop] = useDrop(() => ({
     accept: ItemTypes.ROOM,
@@ -158,7 +162,9 @@ const Blueprint: React.FC<BlueprintProps> = ({
         if (e.target === e.currentTarget && interactionMode === 'select') {
           onSelectRoom(null);
         }
+        setContextMenu(null);
       }}
+      onContextMenu={(e) => e.preventDefault()}
     >
         <div
             ref={(node) => { drop(node) }}
@@ -189,8 +195,23 @@ const Blueprint: React.FC<BlueprintProps> = ({
                     onFinalizeUpdate={onFinalizeUpdate}
                     viewMode={viewMode}
                     isDarkMode={isDarkMode}
+                    onContextMenu={(e) => {
+                        e.preventDefault();
+                        setContextMenu({ x: e.clientX, y: e.clientY, roomId: room.id });
+                    }}
                 />
             ))}
+            {contextMenu && (
+                <ContextMenu
+                    x={contextMenu.x}
+                    y={contextMenu.y}
+                    onClose={() => setContextMenu(null)}
+                    actions={[
+                        { label: 'Generate Furniture', action: () => onGenerateLayout(contextMenu.roomId) },
+                        { label: 'Delete Room', action: () => onDeleteRoom(contextMenu.roomId) },
+                    ]}
+                />
+            )}
             {drawPreview && (
                 <div style={{
                     position: 'absolute',
@@ -216,9 +237,10 @@ interface RoomComponentProps {
     onFinalizeUpdate: (room: Room) => void;
     viewMode: '2d' | '3d';
     isDarkMode: boolean;
+    onContextMenu: (event: React.MouseEvent) => void;
 }
 
-const RoomComponent: React.FC<RoomComponentProps> = ({ room, isSelected, onSelect, onUpdateRoom, onFinalizeUpdate, viewMode, isDarkMode }) => {
+const RoomComponent: React.FC<RoomComponentProps> = ({ room, isSelected, onSelect, onUpdateRoom, onFinalizeUpdate, viewMode, isDarkMode, onContextMenu }) => {
     const roomWidthPx = room.dimensions.width * PIXELS_PER_FOOT;
     const roomLengthPx = room.dimensions.length * PIXELS_PER_FOOT;
 
@@ -372,6 +394,7 @@ const RoomComponent: React.FC<RoomComponentProps> = ({ room, isSelected, onSelec
                 zIndex: 10
             }}
             onClick={(e) => { e.stopPropagation(); onSelect(room.id); }}
+            onContextMenu={onContextMenu}
         >
             <div
               ref={(node) => { drop(node) }}
