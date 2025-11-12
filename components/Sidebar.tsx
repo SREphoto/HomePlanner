@@ -18,6 +18,7 @@ import DragHandleIcon from './icons/DragHandleIcon';
 import OpeningIcon from './icons/OpeningIcon';
 import PencilIcon from './icons/PencilIcon';
 import { PIXELS_PER_FOOT, GRID_SNAP_FEET, ROOM_COLORS, DEFAULT_WALL_COLOR, DEFAULT_FURNITURE_COLOR } from '../constants';
+import Tooltip from './Tooltip';
 import MagicWandIcon from './icons/MagicWandIcon';
 import ChevronDownIcon from './icons/ChevronDownIcon';
 import CameraIcon from './icons/CameraIcon';
@@ -307,6 +308,15 @@ const findAdjacentSegments = (currentRoom: Room, allRooms: Room[]) => {
     return adjacentData;
 };
 
+const featureTypes: { type: FeatureType; icon: React.ReactNode; name: string }[] = [
+    { type: FeatureType.Door, icon: <DoorIcon />, name: 'Standard Door' },
+    { type: FeatureType.SlidingDoor, icon: <DoorIcon />, name: 'Sliding Door' },
+    { type: FeatureType.FrenchDoor, icon: <DoorIcon />, name: 'French Door' },
+    { type: FeatureType.GarageDoor, icon: <DoorIcon />, name: 'Garage Door' },
+    { type: FeatureType.Window, icon: <WindowIcon />, name: 'Window' },
+    { type: FeatureType.Outlet, icon: <OutletIcon />, name: 'Outlet' },
+];
+
 const RoomEditor: React.FC<RoomEditorProps> = ({ room, allRooms, onUpdate, onUpdateMultipleRooms, onGenerateLayout, onGenerateDescription, onMeasureRoom, onGenerateVisualization, onGetRegionalCosts, onDelete, isAiLoading }) => {
     
     const [nudgeAmount, setNudgeAmount] = useState(GRID_SNAP_FEET);
@@ -593,31 +603,22 @@ const RoomEditor: React.FC<RoomEditorProps> = ({ room, allRooms, onUpdate, onUpd
             </div>
 
             <div>
-                <h3 className="text-md font-semibold text-slate-700 dark:text-slate-200 mb-2">Features</h3>
-                 <div className="relative" ref={featureMenuRef}>
-                    <button
-                        onClick={() => setIsFeatureMenuOpen(!isFeatureMenuOpen)}
-                        className="flex w-full items-center justify-center space-x-2 px-3 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 rounded-md text-sm transition-colors"
-                    >
-                        <PlusIcon /> <span>Add Feature</span> <ChevronDownIcon />
-                    </button>
-                    {isFeatureMenuOpen && (
-                        <div className="absolute z-10 mt-1 w-full bg-white dark:bg-slate-700 shadow-lg rounded-md border border-slate-200 dark:border-slate-600">
-                           <ul className="py-1 text-sm text-slate-700 dark:text-slate-200">
-                                <li className="px-3 py-1 text-xs font-semibold text-slate-400 uppercase">Doors</li>
-                                <FeatureMenuItem icon={<DoorIcon />} text="Standard Door" onClick={() => handleAddFeature(FeatureType.Door)} />
-                                <FeatureMenuItem icon={<DoorIcon />} text="Sliding Door" onClick={() => handleAddFeature(FeatureType.SlidingDoor)} />
-                                <FeatureMenuItem icon={<DoorIcon />} text="French Door" onClick={() => handleAddFeature(FeatureType.FrenchDoor)} />
-                                <FeatureMenuItem icon={<DoorIcon />} text="Garage Door" onClick={() => handleAddFeature(FeatureType.GarageDoor)} />
-                                <div className="my-1 h-px bg-slate-100 dark:bg-slate-600"></div>
-                                <li className="px-3 py-1 text-xs font-semibold text-slate-400 uppercase">Other</li>
-                                <FeatureMenuItem icon={<WindowIcon />} text="Window" onClick={() => handleAddFeature(FeatureType.Window)} />
-                                <FeatureMenuItem icon={<OutletIcon />} text="Outlet" onClick={() => handleAddFeature(FeatureType.Outlet)} />
-                           </ul>
-                        </div>
-                    )}
+                <h3 className="text-md font-semibold text-slate-700 dark:text-slate-200 mb-3">Features</h3>
+                <div className="grid grid-cols-4 gap-2">
+                    {featureTypes.map(({ type, icon, name }) => (
+                        <Tooltip key={type} text={name} position="bottom">
+                            <button
+                                onClick={() => handleAddFeature(type)}
+                                className="w-full h-full flex flex-col items-center justify-center p-2 bg-slate-100 dark:bg-slate-700/50 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg aspect-square transition-colors"
+                                aria-label={`Add ${name}`}
+                            >
+                                {icon}
+                                <span className="text-xs mt-1 text-slate-600 dark:text-slate-300 text-center sr-only">{name}</span>
+                            </button>
+                        </Tooltip>
+                    ))}
                 </div>
-                <div className="space-y-2 mt-3">
+                <div className="space-y-2 mt-4">
                     {room.features.filter(f => f.type !== FeatureType.Opening).map(feature => (
                         <div key={feature.id} className="bg-slate-50 dark:bg-slate-700/50 p-2 rounded-md border border-slate-200 dark:border-slate-700">
                              <div className="flex justify-between items-center mb-2">
@@ -838,15 +839,6 @@ const RoomEditor: React.FC<RoomEditorProps> = ({ room, allRooms, onUpdate, onUpd
         </div>
     );
 };
-
-const FeatureMenuItem: React.FC<{icon: React.ReactNode, text: string, onClick: () => void}> = ({ icon, text, onClick }) => (
-    <li>
-        <button onClick={onClick} className="w-full text-left flex items-center space-x-3 px-3 py-2 hover:bg-slate-100 dark:hover:bg-slate-600">
-            {icon}
-            <span>{text}</span>
-        </button>
-    </li>
-);
 
 interface FurnitureItemEditorProps {
     furniture: Furniture;
