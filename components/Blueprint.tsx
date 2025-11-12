@@ -241,6 +241,139 @@ interface RoomComponentProps {
 }
 
 const RoomComponent: React.FC<RoomComponentProps> = ({ room, isSelected, onSelect, onUpdateRoom, onFinalizeUpdate, viewMode, isDarkMode, onContextMenu }) => {
+interface ResizeHandleProps {
+  position: 'top-left' | 'top' | 'top-right' | 'left' | 'right' | 'bottom-left' | 'bottom' | 'bottom-right';
+  room: Room;
+  onUpdateRoom: (room: Room) => void;
+  onFinalizeUpdate: (room: Room) => void;
+}
+
+const useResize = (
+  room: Room,
+  position: ResizeHandleProps['position'],
+  onUpdateRoom: (room: Room) => void,
+  onFinalizeUpdate: (room: Room) => void
+) => {
+  const [, drag] = useDrag(() => ({
+    type: `${ItemTypes.ROOM}_resize_${position}`,
+    item: { id: room.id, ...room },
+    end: (item, monitor) => {
+      const delta = monitor.getDifferenceFromInitialOffset();
+      if (!delta) return;
+      onFinalizeUpdate(item);
+    },
+    collect: monitor => {
+      const delta = monitor.getDifferenceFromInitialOffset();
+      if (monitor.isDragging() && delta) {
+        let newX = room.position.x;
+        let newY = room.position.y;
+        let newWidth = room.dimensions.width;
+        let newLength = room.dimensions.length;
+
+        if (position.includes('left')) {
+          newX += delta.x;
+          newWidth -= delta.x / PIXELS_PER_FOOT;
+        }
+        if (position.includes('right')) {
+          newWidth += delta.x / PIXELS_PER_FOOT;
+        }
+        if (position.includes('top')) {
+          newY += delta.y;
+          newLength -= delta.y / PIXELS_PER_FOOT;
+        }
+        if (position.includes('bottom')) {
+          newLength += delta.y / PIXELS_PER_FOOT;
+        }
+
+        const MIN_SIZE_FEET = 2;
+        if (newWidth < MIN_SIZE_FEET) {
+            newWidth = MIN_SIZE_FEET;
+            if (position.includes('left')) newX = room.position.x + (room.dimensions.width - MIN_SIZE_FEET) * PIXELS_PER_FOOT;
+        }
+        if (newLength < MIN_SIZE_FEET) {
+            newLength = MIN_SIZE_FEET;
+            if (position.includes('top')) newY = room.position.y + (room.dimensions.length - MIN_SIZE_FEET) * PIXELS_PER_FOOT;
+        }
+
+        onUpdateRoom({
+          ...room,
+          position: { x: newX, y: newY },
+          dimensions: { width: newWidth, length: newLength },
+        });
+      }
+    },
+  }), [room, position, onUpdateRoom, onFinalizeUpdate]);
+
+  return drag;
+};
+
+const ResizeHandle: React.FC<ResizeHandleProps> = ({ position, room, onUpdateRoom, onFinalizeUpdate }) => {
+  const drag = useResize(room, position, onUpdateRoom, onFinalizeUpdate);
+  const style: React.CSSProperties = {
+    position: 'absolute',
+    width: '12px',
+    height: '12px',
+    backgroundColor: 'white',
+    border: '2px solid #3B82F6',
+    borderRadius: '50%',
+    zIndex: 30,
+  };
+
+  let cursor = 'auto';
+
+  switch (position) {
+    case 'top-left':
+      style.top = '-6px';
+      style.left = '-6px';
+      cursor = 'nwse-resize';
+      break;
+    case 'top':
+      style.top = '-6px';
+      style.left = '50%';
+      style.marginLeft = '-6px';
+      cursor = 'ns-resize';
+      break;
+    case 'top-right':
+      style.top = '-6px';
+      style.right = '-6px';
+      cursor = 'nesw-resize';
+      break;
+    case 'left':
+      style.top = '50%';
+      style.marginTop = '-6px';
+      style.left = '-6px';
+      cursor = 'ew-resize';
+      break;
+    case 'right':
+      style.top = '50%';
+      style.marginTop = '-6px';
+      style.right = '-6px';
+      cursor = 'ew-resize';
+      break;
+    case 'bottom-left':
+      style.bottom = '-6px';
+      style.left = '-6px';
+      cursor = 'nesw-resize';
+      break;
+    case 'bottom':
+      style.bottom = '-6px';
+      style.left = '50%';
+      style.marginLeft = '-6px';
+      cursor = 'ns-resize';
+      break;
+    case 'bottom-right':
+      style.bottom = '-6px';
+      style.right = '-6px';
+      cursor = 'nwse-resize';
+      break;
+  }
+
+  style.cursor = cursor;
+
+  return <div ref={drag as any} style={style} onClick={e => e.stopPropagation()} />;
+};
+
+const RoomComponent: React.FC<RoomComponentProps> = ({ room, isSelected, onSelect, onUpdateRoom, onFinalizeUpdate, viewMode, isDarkMode }) => {
     const roomWidthPx = room.dimensions.width * PIXELS_PER_FOOT;
     const roomLengthPx = room.dimensions.length * PIXELS_PER_FOOT;
 
@@ -442,6 +575,18 @@ const RoomComponent: React.FC<RoomComponentProps> = ({ room, isSelected, onSelec
                     >
                        <DragHandleIcon/>
                     </div>
+                )}
+                {isSelected && viewMode === '2d' && (
+                  <>
+                    <ResizeHandle position="top-left" room={room} onUpdateRoom={onUpdateRoom} onFinalizeUpdate={onFinalizeUpdate} />
+                    <ResizeHandle position="top" room={room} onUpdateRoom={onUpdateRoom} onFinalizeUpdate={onFinalizeUpdate} />
+                    <ResizeHandle position="top-right" room={room} onUpdateRoom={onUpdateRoom} onFinalizeUpdate={onFinalizeUpdate} />
+                    <ResizeHandle position="left" room={room} onUpdateRoom={onUpdateRoom} onFinalizeUpdate={onFinalizeUpdate} />
+                    <ResizeHandle position="right" room={room} onUpdateRoom={onUpdateRoom} onFinalizeUpdate={onFinalizeUpdate} />
+                    <ResizeHandle position="bottom-left" room={room} onUpdateRoom={onUpdateRoom} onFinalizeUpdate={onFinalizeUpdate} />
+                    <ResizeHandle position="bottom" room={room} onUpdateRoom={onUpdateRoom} onFinalizeUpdate={onFinalizeUpdate} />
+                    <ResizeHandle position="bottom-right" room={room} onUpdateRoom={onUpdateRoom} onFinalizeUpdate={onFinalizeUpdate} />
+                  </>
                 )}
                  {isSelected && viewMode === '3d' && (
                     <div 
