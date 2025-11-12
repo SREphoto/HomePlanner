@@ -245,6 +245,17 @@ const App = () => {
   };
   const handleExport = () => property && exportProjectReport({ property, rooms });
 
+  const handleNewProject = () => {
+    if (window.confirm('Are you sure you want to start a new project? Any unsaved changes will be lost.')) {
+        setAppState('CREATE_PROPERTY');
+        setProperty(null);
+        setRooms([]);
+        setSelectedRoomId(null);
+        setHistory([]);
+        setHistoryIndex(-1);
+    }
+  };
+
   const handleUndo = () => {
     if (historyIndex > 0) {
       const prevIndex = historyIndex - 1;
@@ -306,6 +317,7 @@ const App = () => {
           <Header
             property={property}
             rooms={rooms}
+            onNewProject={handleNewProject}
             onSave={handleSave}
             onLoad={handleLoad}
             onExportReport={handleExport}
