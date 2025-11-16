@@ -248,17 +248,14 @@ const App = () => {
   const handleExport = () => property && exportProjectReport({ property, rooms });
 
   const handleNewProject = () => {
-    setIsNewProjectModalOpen(true);
-  };
-
-  const handleConfirmNewProject = () => {
-    setAppState('CREATE_PROPERTY');
-    setProperty(null);
-    setRooms([]);
-    setSelectedRoomId(null);
-    setHistory([]);
-    setHistoryIndex(-1);
-    setIsNewProjectModalOpen(false);
+    if (window.confirm('Are you sure you want to start a new project? Any unsaved changes will be lost.')) {
+        setAppState('CREATE_PROPERTY');
+        setProperty(null);
+        setRooms([]);
+        setSelectedRoomId(null);
+        setHistory([]);
+        setHistoryIndex(-1);
+    }
   };
 
   const handleUndo = () => {
@@ -347,6 +344,8 @@ const App = () => {
             onUpdateRoom={(r) => handleUpdateRoom(r, false)}
             onFinalizeUpdate={(r) => handleUpdateRoom(r, true)}
             onAddRoom={handleAddRoom}
+            onDeleteRoom={handleDeleteRoom}
+            onGenerateLayout={handleGenerateLayout}
             viewMode={viewMode}
             isSnapEnabled={isSnapEnabled}
             interactionMode={interactionMode}
