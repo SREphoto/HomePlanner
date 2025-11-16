@@ -15,6 +15,7 @@ import EditIcon from './components/icons/EditIcon';
 import SearchIcon from './components/icons/SearchIcon';
 import CameraView from './components/CameraView';
 import CloseIcon from './components/icons/CloseIcon';
+import ConfirmModal from './components/ConfirmModal';
 
 
 export interface GenerateOptions {
@@ -42,6 +43,7 @@ const App = () => {
   const [sunlight, setSunlight] = useState<{ enabled: boolean; azimuth: number }>({ enabled: false, azimuth: 90 });
   const [history, setHistory] = useState<ProjectData[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
+  const [isNewProjectModalOpen, setIsNewProjectModalOpen] = useState(false);
 
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     if (typeof window !== 'undefined' && localStorage.theme) {
@@ -367,6 +369,13 @@ const App = () => {
               </div>
           </div>
       )}
+      <ConfirmModal
+        isOpen={isNewProjectModalOpen}
+        title="Start New Project"
+        message="Are you sure you want to start a new project? Any unsaved changes will be lost."
+        onConfirm={handleConfirmNewProject}
+        onCancel={() => setIsNewProjectModalOpen(false)}
+      />
     </DndProvider>
   );
 };
