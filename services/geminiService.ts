@@ -3,27 +3,29 @@
 
 import { GoogleGenAI, GenerateContentResponse, Type } from '@google/genai';
 import { Room, Furniture, Pet, Property } from '../types';
-import { GenerateOptions } from '../App';
+import { GenerateOptions } from '../types';
 import { PIXELS_PER_FOOT, DEFAULT_FURNITURE_COLOR } from '../constants';
 
-if (!process.env.API_KEY) {
-    console.warn("API_KEY environment variable not set. AI features will not work.");
+const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+
+if (!apiKey) {
+    console.warn("VITE_GEMINI_API_KEY environment variable not set. AI features will not work.");
 }
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY! });
+const ai = new GoogleGenAI({ apiKey: apiKey! });
 
 
 export const researchAddress = async (address: string): Promise<string> => {
-    if (!process.env.API_KEY) {
+    if (!import.meta.env.VITE_GEMINI_API_KEY) {
         throw new Error("API key is not configured.");
     }
     try {
         const response: GenerateContentResponse = await ai.models.generateContent({
-           model: "gemini-2.5-flash",
-           contents: `Provide public information for the address: "${address}". Focus on property details like approximate square footage, number of bedrooms, bathrooms, and a general description of the layout. If you can't find specific details, say so. Keep the response concise. Also, list the URLs of your top sources at the end.`,
-           config: {
-             tools: [{googleSearch: {}}],
-           },
+            model: "gemini-2.5-flash",
+            contents: `Provide public information for the address: "${address}". Focus on property details like approximate square footage, number of bedrooms, bathrooms, and a general description of the layout. If you can't find specific details, say so. Keep the response concise. Also, list the URLs of your top sources at the end.`,
+            config: {
+                tools: [{ googleSearch: {} }],
+            },
         });
 
         let resultText = response.text;
@@ -33,14 +35,14 @@ export const researchAddress = async (address: string): Promise<string> => {
             const sources = groundingMetadata.groundingChunks
                 .map((chunk: any) => chunk.web?.uri)
                 .filter((uri: string | undefined) => uri);
-            
+
             const uniqueSources = [...new Set(sources)];
 
             if (uniqueSources.length > 0) {
                 resultText += "\n\nSources:\n- " + uniqueSources.join("\n- ");
             }
         }
-        
+
         return resultText;
 
     } catch (error) {
@@ -130,7 +132,7 @@ export const generateBlueprintLayout = async (options: GenerateOptions, research
         Now, generate the layout for the specified house.
         `;
     }
-    
+
     try {
         const response = await ai.models.generateContent({
             model: "gemini-2.5-flash",
@@ -145,18 +147,18 @@ export const generateBlueprintLayout = async (options: GenerateOptions, research
         const fenceRegex = /^```(\w*)?\s*\n?(.*?)\n?\s*```$/s;
         const match = jsonStr.match(fenceRegex);
         if (match && match[2]) {
-          jsonStr = match[2].trim();
+            jsonStr = match[2].trim();
         }
 
         const layout = JSON.parse(jsonStr);
 
         if (!Array.isArray(layout)) {
-             throw new Error("AI response was not a JSON array.");
+            throw new Error("AI response was not a JSON array.");
         }
 
         return layout.map((room, index) => ({
-            ...room, 
-            id: room.id || `room-${Date.now()}-${index}`, 
+            ...room,
+            id: room.id || `room-${Date.now()}-${index}`,
             floor: room.floor || 1,
             position: { // Convert position from feet to pixels
                 x: (room.position?.x || 0) * PIXELS_PER_FOOT,
@@ -166,7 +168,7 @@ export const generateBlueprintLayout = async (options: GenerateOptions, research
             pets: [],
         })) as Room[];
 
-    } catch(error) {
+    } catch (error) {
         console.error("Error generating blueprint from Gemini:", error);
         throw new Error("Failed to parse or receive blueprint from AI.");
     }
@@ -174,15 +176,15 @@ export const generateBlueprintLayout = async (options: GenerateOptions, research
 
 
 const generateFurniturePrompt = (room: Room): string => {
-  // Sanitize room data for the prompt, omitting circular or large properties
-  const roomForPrompt = {
-    name: room.name,
-    type: room.type,
-    dimensions: room.dimensions,
-    features: room.features,
-  };
+    // Sanitize room data for the prompt, omitting circular or large properties
+    const roomForPrompt = {
+        name: room.name,
+        type: room.type,
+        dimensions: room.dimensions,
+        features: room.features,
+    };
 
-  return `
+    return `
     You are an expert interior designer creating a blueprint furniture layout.
     Your task is to generate a functional and aesthetically pleasing furniture arrangement for a given room.
 
@@ -224,55 +226,55 @@ const generateFurniturePrompt = (room: Room): string => {
 };
 
 export const generateFurnitureLayout = async (room: Room): Promise<Furniture[]> => {
-  if (!process.env.API_KEY) {
-    throw new Error("API key is not configured.");
-  }
-  
-  const prompt = generateFurniturePrompt(room);
-
-  try {
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: prompt,
-      config: {
-        responseMimeType: "application/json",
-        temperature: 0.5,
-      },
-    });
-
-    let jsonStr = response.text.trim();
-    const fenceRegex = /^```(\w*)?\s*\n?(.*?)\n?\s*```$/s;
-    const match = jsonStr.match(fenceRegex);
-    if (match && match[2]) {
-      jsonStr = match[2].trim();
+    if (!import.meta.env.VITE_GEMINI_API_KEY) {
+        throw new Error("API key is not configured.");
     }
 
-    const furnitureData = JSON.parse(jsonStr);
+    const prompt = generateFurniturePrompt(room);
 
-    if (!Array.isArray(furnitureData)) {
-      throw new Error("API response is not an array.");
+    try {
+        const response = await ai.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: prompt,
+            config: {
+                responseMimeType: "application/json",
+                temperature: 0.5,
+            },
+        });
+
+        let jsonStr = response.text.trim();
+        const fenceRegex = /^```(\w*)?\s*\n?(.*?)\n?\s*```$/s;
+        const match = jsonStr.match(fenceRegex);
+        if (match && match[2]) {
+            jsonStr = match[2].trim();
+        }
+
+        const furnitureData = JSON.parse(jsonStr);
+
+        if (!Array.isArray(furnitureData)) {
+            throw new Error("API response is not an array.");
+        }
+
+        // Validate and return, ensuring it fits the Furniture[] type
+        return furnitureData
+            .filter(item =>
+                item.id &&
+                item.name &&
+                item.position && typeof item.position.x === 'number' && typeof item.position.y === 'number' &&
+                item.dimensions && typeof item.dimensions.width === 'number' && typeof item.dimensions.length === 'number' &&
+                [0, 90, 180, 270].includes(item.rotation)
+            )
+            .map((item: any) => ({ ...item, color: DEFAULT_FURNITURE_COLOR }));
+
+    } catch (error) {
+        console.error("Error generating furniture layout from Gemini:", error);
+        throw new Error("Failed to parse or receive layout from AI.");
     }
-    
-    // Validate and return, ensuring it fits the Furniture[] type
-    return furnitureData
-        .filter(item => 
-            item.id &&
-            item.name &&
-            item.position && typeof item.position.x === 'number' && typeof item.position.y === 'number' &&
-            item.dimensions && typeof item.dimensions.width === 'number' && typeof item.dimensions.length === 'number' &&
-            [0, 90, 180, 270].includes(item.rotation)
-        )
-        .map((item: any) => ({ ...item, color: DEFAULT_FURNITURE_COLOR }));
-
-  } catch (error) {
-    console.error("Error generating furniture layout from Gemini:", error);
-    throw new Error("Failed to parse or receive layout from AI.");
-  }
 };
 
 
 export const generateRoomDescription = async (room: Room): Promise<string> => {
-    if (!process.env.API_KEY) {
+    if (!import.meta.env.VITE_GEMINI_API_KEY) {
         throw new Error("API key is not configured.");
     }
 
@@ -315,14 +317,14 @@ export const generateRoomDescription = async (room: Room): Promise<string> => {
         });
 
         return response.text.trim();
-    } catch(error) {
+    } catch (error) {
         console.error("Error generating room description from Gemini:", error);
         throw new Error("Failed to generate room description from AI.");
     }
 };
 
-export const generateDimensionsFromImage = async (base64ImageData: string): Promise<{width: number, length: number}> => {
-    if (!process.env.API_KEY) {
+export const generateDimensionsFromImage = async (base64ImageData: string): Promise<{ width: number, length: number }> => {
+    if (!import.meta.env.VITE_GEMINI_API_KEY) {
         throw new Error("API key is not configured.");
     }
 
@@ -382,7 +384,7 @@ export const generateDimensionsFromImage = async (base64ImageData: string): Prom
 };
 
 export const generateRoomVisualization = async (room: Room): Promise<string> => {
-    if (!process.env.API_KEY) {
+    if (!import.meta.env.VITE_GEMINI_API_KEY) {
         throw new Error("API key is not configured.");
     }
 
@@ -401,19 +403,19 @@ export const generateRoomVisualization = async (room: Room): Promise<string> => 
             model: 'imagen-3.0-generate-002',
             prompt: prompt,
             config: {
-              numberOfImages: 1,
-              outputMimeType: 'image/jpeg',
-              aspectRatio: '16:9',
+                numberOfImages: 1,
+                outputMimeType: 'image/jpeg',
+                aspectRatio: '16:9',
             },
         });
-        
+
         if (response.generatedImages && response.generatedImages.length > 0) {
             return response.generatedImages[0].image.imageBytes;
         } else {
             throw new Error("AI did not return an image.");
         }
 
-    } catch(error) {
+    } catch (error) {
         console.error("Error generating room visualization from Imagen:", error);
         throw new Error("Failed to generate room image with AI.");
     }
@@ -432,7 +434,7 @@ export const getRegionalCosts = async (property: Property): Promise<{ flooring: 
             model: "gemini-2.5-flash",
             contents: prompt,
             config: {
-                tools: [{googleSearch: {}}],
+                tools: [{ googleSearch: {} }],
                 responseMimeType: "application/json",
                 responseSchema: {
                     type: Type.OBJECT,

@@ -45,39 +45,39 @@ export enum RoomType {
 
 // Ensure the enum values match the keys for easy iteration if needed
 export const ROOM_TYPES: RoomType[] = [
-    RoomType.LivingRoom,
-    RoomType.Bedroom,
-    RoomType.Kitchen,
-    RoomType.Bathroom,
-    RoomType.DiningRoom,
-    RoomType.Office,
-    RoomType.Garage,
-    RoomType.Stairs,
-    RoomType.Hallway,
-    RoomType.Custom,
+  RoomType.LivingRoom,
+  RoomType.Bedroom,
+  RoomType.Kitchen,
+  RoomType.Bathroom,
+  RoomType.DiningRoom,
+  RoomType.Office,
+  RoomType.Garage,
+  RoomType.Stairs,
+  RoomType.Hallway,
+  RoomType.Custom,
 ]
 
 export enum PetType {
-    Dog = 'Dog',
-    Cat = 'Cat',
-    Bird = 'Bird',
-    Fish = 'Fish',
-    SmallAnimal = 'Small Animal',
+  Dog = 'Dog',
+  Cat = 'Cat',
+  Bird = 'Bird',
+  Fish = 'Fish',
+  SmallAnimal = 'Small Animal',
 }
 
 export const PET_TYPES: PetType[] = [
-    PetType.Dog,
-    PetType.Cat,
-    PetType.Bird,
-    PetType.Fish,
-    PetType.SmallAnimal,
+  PetType.Dog,
+  PetType.Cat,
+  PetType.Bird,
+  PetType.Fish,
+  PetType.SmallAnimal,
 ];
 
 export interface Pet {
-    id: string;
-    name: string;
-    type: PetType;
-    position: Vector2; // relative to room's top-left corner in FEET
+  id: string;
+  name: string;
+  type: PetType;
+  position: Vector2; // relative to room's top-left corner in FEET
 }
 
 export interface Furniture {
@@ -90,12 +90,12 @@ export interface Furniture {
 }
 
 export interface RoomConnection {
-    roomId: string;
-    wall: Wall;
+  roomId: string;
+  wall: Wall;
 }
 
 export interface Room {
-  id:string;
+  id: string;
   name: string;
   type: RoomType;
   dimensions: Dimension;
@@ -126,13 +126,21 @@ export type AppState = 'CREATE_PROPERTY' | 'DESIGNING';
 export type InteractionMode = 'select' | 'draw_hallway';
 
 export interface ProjectData {
-    property: Property;
-    rooms: Room[];
-    diagram?: string;
+  property: Property;
+  rooms: Room[];
+  diagram?: string;
 }
+
 
 export const ItemTypes = {
   FURNITURE: 'furniture',
   ROOM: 'room',
   PET: 'pet',
 };
+
+export interface GenerateOptions {
+  sqft: number;
+  floors: number;
+  bedrooms: number;
+  bathrooms: number;
+}
