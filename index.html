@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Room Planner</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      @import url('https://rsms.me/inter/inter.css');
+      body {
+        font-family: 'Inter', sans-serif;
+        overflow: hidden; /* Prevent body scroll */
+      }
+      /* Base styles for 3D elements */
+      .wall {
+          position: absolute;
+          background-color: rgba(185, 195, 210, 0.6);
+          border: 1px solid rgba(120, 130, 150, 0.7);
+      }
+      .dark .wall {
+          background-color: rgba(71, 85, 105, 0.6);
+          border: 1px solid rgba(100, 116, 139, 0.7);
+      }
+      .wall-3d {
+          position: absolute;
+      }
+      .animate-fade-in {
+        animation: fadeIn 0.5s ease-in-out;
+      }
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      /* Tweak input styles for better consistency and to prevent mobile zoom */
+      input[type="number"], input[type="text"], select, textarea {
+        @apply bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-50 text-base rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5;
+      }
+      /* Custom styles for range sliders to make them easier to grab */
+      input[type=range] {
+        -webkit-appearance: none;
+        appearance: none;
+        background: transparent;
+        cursor: pointer;
+        width: 100%;
+      }
+      input[type=range]:focus {
+        outline: none;
+      }
+      /*-webkit- (Chrome, Safari, Opera, Edge)*/
+      input[type=range]::-webkit-slider-runnable-track {
+        background: #e2e8f0; /* slate-200 */
+        height: 6px;
+        border-radius: 4px;
+      }
+      .dark input[type=range]::-webkit-slider-runnable-track {
+        background: #475569; /* slate-600 */
+      }
+      input[type=range]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        margin-top: -7px; /* (thumb height - track height) / 2 */
+        background-color: #3b82f6; /* blue-500 */
+        height: 20px;
+        width: 20px;
+        border-radius: 9999px;
+        border: 3px solid white;
+        box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+      }
+      .dark input[type=range]::-webkit-slider-thumb {
+        border-color: #1e293b; /* slate-800 */
+      }
+      /*-moz- (Firefox)*/
+      input[type=range]::-moz-range-track {
+        background: #e2e8f0; /* slate-200 */
+        height: 6px;
+        border-radius: 4px;
+      }
+      .dark input[type=range]::-moz-range-track {
+        background: #475569; /* slate-600 */
+      }
+      input[type=range]::-moz-range-thumb {
+        border: none; /* FF adds a border by default */
+        appearance: none;
+        background-color: #3b82f6;
+        height: 20px;
+        width: 20px;
+        border-radius: 9999px;
+        border: 3px solid white;
+        box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+      }
+      .dark input[type=range]::-moz-range-thumb {
+        border-color: #1e293b; /* slate-800 */
+      }
+    </style>
+    <script>
+      // Prevents dark mode flicker on page load
+      if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark')
+      } else {
+        document.documentElement.classList.remove('dark')
+      }
+
+      // Configure Tailwind to use the 'class' strategy for dark mode
+      tailwind.config = {
+        darkMode: 'class',
+      }
+    </script>
+
+  <script type="module" crossorigin src="/HomePlanner/assets/index-B5ZorO7k.js"></script>
+  <link rel="stylesheet" crossorigin href="/HomePlanner/assets/index-pztjZdwS.css">
+</head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
