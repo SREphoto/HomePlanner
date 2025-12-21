@@ -6,13 +6,26 @@ import { Room, Furniture, Pet, Property } from '../types';
 import { GenerateOptions } from '../types';
 import { PIXELS_PER_FOOT, DEFAULT_FURNITURE_COLOR } from '../constants';
 
-const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+// Initial key from env
+let apiKey = import.meta.env.VITE_GEMINI_API_KEY || localStorage.getItem('GEMINI_API_KEY') || '';
 
 if (!apiKey) {
-    console.warn("VITE_GEMINI_API_KEY environment variable not set. AI features will not work.");
+    console.warn("GEMINI_API_KEY not set. Please provide it in the app settings.");
 }
 
-const ai = new GoogleGenAI({ apiKey: apiKey! });
+// Lazy initialization or a proxy-like behavior would be better, 
+// but for now let's just create a helper to get the instance
+export const getAi = () => {
+    const currentKey = import.meta.env.VITE_GEMINI_API_KEY || localStorage.getItem('GEMINI_API_KEY') || '';
+    if (!currentKey) {
+        throw new Error("API Key is missing. Please set it in the application settings.");
+    }
+    return new GoogleGenAI({ apiKey: currentKey });
+};
+
+// Internal helper for this module
+const aiInstance = () => getAi();
+
 
 
 export const researchAddress = async (address: string): Promise<string> => {
@@ -20,7 +33,7 @@ export const researchAddress = async (address: string): Promise<string> => {
         throw new Error("API key is not configured.");
     }
     try {
-        const response: GenerateContentResponse = await ai.models.generateContent({
+        const response: GenerateContentResponse = await aiInstance().models.generateContent({
             model: "gemini-2.5-flash",
             contents: `Provide public information for the address: "${address}". Focus on property details like approximate square footage, number of bedrooms, bathrooms, and a general description of the layout. If you can't find specific details, say so. Keep the response concise. Also, list the URLs of your top sources at the end.`,
             config: {
@@ -134,7 +147,7 @@ export const generateBlueprintLayout = async (options: GenerateOptions, research
     }
 
     try {
-        const response = await ai.models.generateContent({
+        const response = await aiInstance().models.generateContent({
             model: "gemini-2.5-flash",
             contents: finalPrompt,
             config: {
@@ -233,7 +246,7 @@ export const generateFurnitureLayout = async (room: Room): Promise<Furniture[]> 
     const prompt = generateFurniturePrompt(room);
 
     try {
-        const response = await ai.models.generateContent({
+        const response = await aiInstance().models.generateContent({
             model: "gemini-2.5-flash",
             contents: prompt,
             config: {
@@ -308,7 +321,7 @@ export const generateRoomDescription = async (room: Room): Promise<string> => {
     `;
 
     try {
-        const response = await ai.models.generateContent({
+        const response = await aiInstance().models.generateContent({
             model: "gemini-2.5-flash",
             contents: prompt,
             config: {
@@ -352,7 +365,7 @@ export const generateDimensionsFromImage = async (base64ImageData: string): Prom
     };
 
     try {
-        const response = await ai.models.generateContent({
+        const response = await aiInstance().models.generateContent({
             model: "gemini-2.5-flash",
             contents: [{ parts: [imagePart, textPart] }],
             config: {
@@ -399,7 +412,7 @@ export const generateRoomVisualization = async (room: Room): Promise<string> => 
     const prompt = `A photorealistic, high-quality interior photo of a ${room.type}, which is ${room.dimensions.width}' wide and ${room.dimensions.length}' long. The style is modern and bright. The walls are painted with a color similar to hex code ${room.wallColor}. The floor color is similar to hex code ${room.color}. ${featuresString} The room contains the following furniture: ${furnitureString}. The photo is taken from a standing perspective, looking into the room. Use a 35mm lens style. Natural daylight is abundant.`;
 
     try {
-        const response = await ai.models.generateImages({
+        const response = await aiInstance().models.generateImages({
             model: 'imagen-3.0-generate-002',
             prompt: prompt,
             config: {
@@ -430,7 +443,7 @@ export const getRegionalCosts = async (property: Property): Promise<{ flooring: 
     const prompt = `Based on public data for the location "${property.address}", provide the average home renovation costs per square foot in USD. I need values for 'flooring' (for mid-range hardwood installation), 'paint' (for standard interior wall painting including materials), and 'labor' (for general carpentry or renovation tasks). Provide a single numeric estimate for each, representing the cost per square foot. Respond ONLY with a valid JSON object.`;
 
     try {
-        const response = await ai.models.generateContent({
+        const response = await aiInstance().models.generateContent({
             model: "gemini-2.5-flash",
             contents: prompt,
             config: {
