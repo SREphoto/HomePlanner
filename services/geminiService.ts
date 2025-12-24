@@ -1,6 +1,53 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+======================================================================================================================================================================
+
+
 import { GoogleGenAI, GenerateContentResponse, Type } from '@google/genai';
 import { Room, Furniture, Pet, Property } from '../types';
 import { GenerateOptions } from '../types';
