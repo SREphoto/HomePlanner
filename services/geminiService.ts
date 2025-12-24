@@ -34,7 +34,7 @@ export const researchAddress = async (address: string): Promise<string> => {
     }
     try {
         const response: GenerateContentResponse = await aiInstance().models.generateContent({
-            model: "gemini-2.5-flash",
+            model: "gemini-3.0-flash",
             contents: `Provide public information for the address: "${address}". Focus on property details like approximate square footage, number of bedrooms, bathrooms, and a general description of the layout. If you can't find specific details, say so. Keep the response concise. Also, list the URLs of your top sources at the end.`,
             config: {
                 tools: [{ googleSearch: {} }],
@@ -148,7 +148,7 @@ export const generateBlueprintLayout = async (options: GenerateOptions, research
 
     try {
         const response = await aiInstance().models.generateContent({
-            model: "gemini-2.5-flash",
+            model: "gemini-3.0-flash",
             contents: finalPrompt,
             config: {
                 responseMimeType: "application/json",
@@ -247,7 +247,7 @@ export const generateFurnitureLayout = async (room: Room): Promise<Furniture[]> 
 
     try {
         const response = await aiInstance().models.generateContent({
-            model: "gemini-2.5-flash",
+            model: "gemini-3.0-flash",
             contents: prompt,
             config: {
                 responseMimeType: "application/json",
@@ -322,7 +322,7 @@ export const generateRoomDescription = async (room: Room): Promise<string> => {
 
     try {
         const response = await aiInstance().models.generateContent({
-            model: "gemini-2.5-flash",
+            model: "gemini-3.0-flash",
             contents: prompt,
             config: {
                 temperature: 0.6,
@@ -366,7 +366,7 @@ export const generateDimensionsFromImage = async (base64ImageData: string): Prom
 
     try {
         const response = await aiInstance().models.generateContent({
-            model: "gemini-2.5-flash",
+            model: "gemini-3.0-flash",
             contents: [{ parts: [imagePart, textPart] }],
             config: {
                 responseMimeType: "application/json",
@@ -413,7 +413,7 @@ export const generateRoomVisualization = async (room: Room): Promise<string> => 
 
     try {
         const response = await aiInstance().models.generateImages({
-            model: 'imagen-3.0-generate-002',
+            model: 'gemini-3-pro-image-preview',
             prompt: prompt,
             config: {
                 numberOfImages: 1,
@@ -444,7 +444,7 @@ export const getRegionalCosts = async (property: Property): Promise<{ flooring: 
 
     try {
         const response = await aiInstance().models.generateContent({
-            model: "gemini-2.5-flash",
+            model: "gemini-3.0-flash",
             contents: prompt,
             config: {
                 tools: [{ googleSearch: {} }],
